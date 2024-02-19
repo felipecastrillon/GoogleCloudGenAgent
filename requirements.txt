@@ -1,0 +1,11 @@
+gradio
+gradio_client
+langchain
+langchain-community
+langchain-core
+langchain-google-vertexai
+langsmith
+faiss-cpu
+google-cloud-aiplatform
+pypdf
+tenacity

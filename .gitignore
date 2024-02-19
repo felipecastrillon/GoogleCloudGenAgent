@@ -1,0 +1,8 @@
+*.json
+flagged
+__pycache__
+docs/*.pdf
+.DS_Store
+.git
+*.swp
+
