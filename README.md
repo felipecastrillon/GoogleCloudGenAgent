@@ -1,7 +1,8 @@
 # Introduction
 
 A customizable GenAI RAG application using Google Cloud components:
-- Gemini: LLM 
+- Gemini: LLM
+- textembedding-gecko: embedding model
 - Cloud Run: app deployment
 - DocAI: document parsing  
 
@@ -9,21 +10,21 @@ This project also uses the following open source components
 - gradio: UI 
 - langchain: orchestration of RAG components
 
-The project has the following customizable components in src/config.py
+The project has quick customizable retrieval components in [src/config.py](https://github.com/felipecastrillon/GenAIRagApp/blob/main/src/config.py)
 - Text split chunk size and chunk overlap
-- Select your own DocAI parser
-- Include table parsing 
+- Bring your own DocAI parser
+- Include table + text parsing 
 
 Roadmap:
-- Add links to UI 
-- Read more than one file
+- Add retrieval links to UI 
+- Read directory, more than one file
 - Read files from GCS 
 - Include Vertex Vector Search as a retrieval source
-- Better retrieval based on document metadata (year, customer, etc...)
+- Filtered retrieval based on document metadata (year, customer, etc...)
 - Evaluation job of RAG model for accuracy
 
 # Requirements
-A Google Cloud Platform project
+Google Cloud Platform (GCP) project
 python version  >= 3.8
 
 # Setup
@@ -47,6 +48,8 @@ Edit src/config.py to include your GCP project:
 ```
 PROJECT = <PROJECT_ID> 
 ```
+
+Add your document to the "docs/" directory and modify src/config.py to point to that directory
 
 ## Runing Locally
 
