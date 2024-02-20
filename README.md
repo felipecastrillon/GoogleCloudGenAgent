@@ -9,18 +9,19 @@ A customizable GenAI RAG application using Google Cloud components:
 - Cloud Run: app deployment
 - DocAI: document parsing  
 
-App uses the following open source components:
+The app also uses the following open source components:
 - gradio: UI 
 - langchain: orchestration of RAG components
 
-The project has quick customizable retrieval components in [src/config.py](https://github.com/felipecastrillon/GenAIRagApp/blob/main/src/config.py):
-- Text split chunk size and chunk overlap
-- Bring your own DocAI parser
-- Include table + text parsing 
+The project has quick customizable options in [src/config.py](https://github.com/felipecastrillon/GenAIRagApp/blob/main/src/config.py):
+- Text split chunk size
+- Text split chunk overlap
+- Use your own DocAI parser
+- Include "text" vs "table + text" parsing 
 
 Roadmap:
 - Add retrieval links to UI 
-- Read directory, more than one file
+- Read directory and more than one file
 - Read files from GCS 
 - Include Vertex Vector Search as a retrieval source
 - Filtered retrieval based on document metadata (year, customer, etc...)
@@ -47,7 +48,7 @@ Enable the following APIs
 
 [Create a service account key](https://cloud.google.com/iam/docs/keys-create-delete#creating) which automatically downloads a json file with your key:
 
-Edit src/config.py to include your GCP project:
+Next, edit src/config.py to include your GCP project:
 ```
 PROJECT = <PROJECT_ID> 
 ```
@@ -59,18 +60,18 @@ Add the pdf document that you are trying to ask questions from to the "docs/" di
 FILENAME=<DOCUMENT_LOCATION>
 ``` 
 
-(Create a DocAI processor)[https://cloud.google.com/document-ai/docs/create-processor] and modify src/config.py:
+[Create a DocAI processor](https://cloud.google.com/document-ai/docs/create-processor) and modify src/config.py:
 
 ```
 PROCESSOR_ID=<PROCESSOR_ID>
 PROCESSOR_VERSION=<PROCESSOR_VERSION>
 ```
 
-## Running
+## Running the App Locally or in Cloud Run
 
-### Runing Locally
+### Option: Runing Locally
 
-Find the location of the json service account file and run on terminal:
+Find the location of the json service account file that was downloaded and run on terminal:
 ```
 export GOOGLE_APPLICATION_CREDENTIALS = <SERVICE ACCOUNT FILE LOCATION>
 ```
@@ -81,7 +82,7 @@ cd src
 python main.py
 ```
 
-### Running in Cloud Run
+### Option: Running in Cloud Run
 
 Modify Dockerfile to include your own project:
 ```
