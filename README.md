@@ -52,9 +52,23 @@ Edit src/config.py to include your GCP project:
 PROJECT = <PROJECT_ID> 
 ```
 
-Add your document to the "docs/" directory and modify src/config.py to point to that directory
+## Setup Documents and Parser
 
-## Runing Locally
+Add the pdf document that you are trying to ask questions from to the "docs/" directory and modify src/config.py:
+```
+FILENAME=<DOCUMENT_LOCATION>
+``` 
+
+(Create a DocAI processor)[https://cloud.google.com/document-ai/docs/create-processor] and modify src/config.py:
+
+```
+PROCESSOR_ID=<PROCESSOR_ID>
+PROCESSOR_VERSION=<PROCESSOR_VERSION>
+```
+
+## Running
+
+### Runing Locally
 
 Find the location of the json service account file and run on terminal:
 ```
@@ -67,7 +81,7 @@ cd src
 python main.py
 ```
 
-## Running in Cloud Run
+### Running in Cloud Run
 
 Modify Dockerfile to include your own project:
 ```
