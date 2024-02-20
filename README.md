@@ -9,11 +9,11 @@ A customizable GenAI RAG application using Google Cloud components:
 - Cloud Run: app deployment
 - DocAI: document parsing  
 
-This project also uses the following open source components
+App uses the following open source components:
 - gradio: UI 
 - langchain: orchestration of RAG components
 
-The project has quick customizable retrieval components in [src/config.py](https://github.com/felipecastrillon/GenAIRagApp/blob/main/src/config.py)
+The project has quick customizable retrieval components in [src/config.py](https://github.com/felipecastrillon/GenAIRagApp/blob/main/src/config.py):
 - Text split chunk size and chunk overlap
 - Bring your own DocAI parser
 - Include table + text parsing 
