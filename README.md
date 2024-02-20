@@ -1,7 +1,6 @@
 # Introduction
 
 ![alt text](images/image1.png "APP UI")
-/
 ![alt text](images/image2.png "Sample table from document")
 
 A customizable GenAI RAG application using Google Cloud components:
