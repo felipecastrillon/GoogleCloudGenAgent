@@ -19,8 +19,8 @@ The project has quick customizable options in [src/config.py](https://github.com
 - Use your own DocAI parser
 - Include "text" vs "table + text" parsing 
 
-Roadmap:
-:white_check_mark: Add retrieval snippets to UI 
+# Roadmap:
+&#9744 Add retrieval snippets to UI 
 :white_check_mark: Integrate DocAI Form Parser for tables. Remove table snippets from text parsing 
 :white_large_square: Integrate DocAI GenAI CDE 2.0 parser
 :white_large_square: Read directory instead of one file
