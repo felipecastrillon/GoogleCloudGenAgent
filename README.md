@@ -20,12 +20,15 @@ The project has quick customizable options in [src/config.py](https://github.com
 - Include "text" vs "table + text" parsing 
 
 Roadmap:
-- Add retrieval links to UI 
-- Read directory and more than one file
-- Read files from GCS 
-- Include Vertex Vector Search as a retrieval source
-- Filtered retrieval based on document metadata (year, customer, etc...)
-- Evaluation job of RAG model for accuracy
+- [x] Add retrieval snippets to UI 
+- [ ] fix: remove wrongly parsed tables from text parser, let form parser handle it. 
+- [ ] Read directory instead of one file
+- [ ] Read files from GCS 
+- [ ] Include Vertex Search as a retrieval source
+- [ ] Include Vertex Vector Search as a retrieval source
+- [ ] Filtered retrieval based on document metadata (year, customer, etc...)
+- [ ] Evaluation job of RAG model for accuracy
+- [ ] Add github actions
 
 # Requirements
 Google Cloud Platform (GCP) project

@@ -8,6 +8,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_google_vertexai import VertexAIEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS
+from langchain.schema.document import Document
 from tenacity import retry, stop_after_attempt
 from parser import DocAIParser
 import config
@@ -32,19 +33,18 @@ class Agent:
       proc_document = parser.process_document()
       all_text = parser.read_text(proc_document)
       
-      # split docs into splits
+      # split docs into chunks
+      documents = []
       text_splitter = RecursiveCharacterTextSplitter(chunk_size = config.CHUNK_SIZE,
                                              chunk_overlap=config.CHUNK_OVERLAP)
-      documents = []
-      splits = text_splitter.create_documents([all_text])    
-      for split in splits:
-        documents.append(split.page_content)
+      documents = text_splitter.create_documents([all_text])    
     
       # add tables if document has tables
       if (config.HAS_TABLES == "true"):
         tables = parser.read_tables(proc_document)
         for table in tables:
-          documents.append(table) 
+          doc =  Document(page_content=table, metadata={"source": "local"})
+          documents.append(doc) 
 
 
     else:
@@ -62,7 +62,7 @@ class Agent:
     # create retriever 
     db = None
     if config.RETRIEVER == "faiss":
-      self.db = FAISS.from_documents(splits, embed_model)         
+      self.db = FAISS.from_documents(documents, embed_model)         
     else:
       raise ValueError("splitter input must be one of the following values [\"faiss\"]") 
     
@@ -78,39 +78,40 @@ class Agent:
     # create prompt
     nearby_documents = self.db.similarity_search(user_query)
     context = "CONTEXT: \n"
-    for doc in nearby_documents:
-      context += doc.page_content + "\n\n"
+    for i,doc in enumerate(nearby_documents):
+      context += "[" + str(i) + "] \"..." + doc.page_content + "...\"\n\n\n"
     context += "END CONTEXT \n"
     instructions = "Please answer the below question based on the context above: \n"
     prompt = context + instructions + user_query
 
-    # get response
-    @retry(stop=stop_after_attempt(3))
-    def generate(prompt):
-      responses=[]    
-      try:
-        responses = self.llm_model.generate_content(
-          prompt,
-          generation_config={
-            "max_output_tokens": 2048,
-            "temperature": 0.9,
-            "top_p": 1
-          },
-          safety_settings={
-            generative_models.HarmCategory.HARM_CATEGORY_HATE_SPEECH: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-            generative_models.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-            generative_models.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-            generative_models.HarmCategory.HARM_CATEGORY_HARASSMENT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-          },
-          stream=True,
-        )
-      except Exception as inst:
-        print ("Exception: " + str(inst)) 
-       
-      answers = [response.text for response in responses]
-      return answers[0] 
+    response = self.generate(prompt)
+    return [response, context]
+
+  # get response
+  @retry(stop=stop_after_attempt(3))
+  def generate(self, prompt):
+    responses=[]    
+    try:
+      responses = self.llm_model.generate_content(
+        prompt,
+        generation_config={
+          "max_output_tokens": 2048,
+          "temperature": 0.9,
+          "top_p": 1
+        },
+        safety_settings={
+          generative_models.HarmCategory.HARM_CATEGORY_HATE_SPEECH: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          generative_models.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          generative_models.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          generative_models.HarmCategory.HARM_CATEGORY_HARASSMENT: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+        stream=True,
+      )
+    except Exception as inst:
+      print ("Exception: " + str(inst)) 
+     
+    answers = [response.text for response in responses]
+    return answers[0] 
     
-    response = generate(prompt)
-    return response
 
   
