@@ -31,27 +31,26 @@ class Agent:
       # read document using DocAI parser
       parser = DocAIParser() 
       proc_document = parser.process_document()
-      all_text = parser.read_text(proc_document)
+      chunks = []
       
-      # split docs into chunks
-      documents = []
-      text_splitter = RecursiveCharacterTextSplitter(chunk_size = config.CHUNK_SIZE,
-                                             chunk_overlap=config.CHUNK_OVERLAP)
-      documents = text_splitter.create_documents([all_text])    
-    
       # add tables if document has tables
-      if (config.HAS_TABLES == "true"):
-        tables = parser.read_tables(proc_document)
+      table_indexes = []
+      if (config.HAS_TABLES == True):
+        tables, table_indexes = parser.read_tables(proc_document)
         for table in tables:
           doc =  Document(page_content=table, metadata={"source": "local"})
-          documents.append(doc) 
-
-
+          chunks.append(doc) 
+      
+      # add text that does not include tables
+      unstructured_text = parser.read_text(proc_document, config.HAS_TABLES, table_indexes)
+      text_splitter = RecursiveCharacterTextSplitter(chunk_size = config.CHUNK_SIZE,
+                                             chunk_overlap=config.CHUNK_OVERLAP)
+      chunks += text_splitter.create_documents([unstructured_text])    
+    
+      
     else:
       raise ValueError("splitter input must be one of the following values [\"text\"]") 
 
-    print("Read text document. Character length: " + str(len(all_text)))
-    
     # create embeddings
     embed_model = None
     if config.EMBEDDINGS == "google-gecko":
@@ -62,7 +61,7 @@ class Agent:
     # create retriever 
     db = None
     if config.RETRIEVER == "faiss":
-      self.db = FAISS.from_documents(documents, embed_model)         
+      self.db = FAISS.from_documents(chunks, embed_model)         
     else:
       raise ValueError("splitter input must be one of the following values [\"faiss\"]") 
     
