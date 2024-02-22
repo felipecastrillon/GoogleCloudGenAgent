@@ -20,16 +20,16 @@ The project has quick customizable options in [src/config.py](https://github.com
 - Include "text" vs "table + text" parsing 
 
 # Roadmap:
-&#9744; Add retrieval snippets to UI 
-:white_check_mark: Integrate DocAI Form Parser for tables. Remove table snippets from text parsing 
-:white_large_square: Integrate DocAI GenAI CDE 2.0 parser
-:white_large_square: Read directory instead of one file
-:white_large_square: Read files from GCS 
-:white_large_square: Include Vertex Search as a retrieval source
-:white_large_square: Include Vertex Vector Search as a retrieval source
-:white_large_square: Filtered retrieval based on document metadata (year, customer, etc...)
-:white_large_square: Evaluation job of RAG model for accuracy
-:white_large_square: Add github actions
+&#9745;  Add retrieval snippets to UI 
+&#9745; Integrate DocAI Form Parser for tables. Remove table snippets from text parsing 
+&#9744; Integrate DocAI GenAI CDE 2.0 parser
+&#9744; Read directory instead of one file
+&#9744; Read files from GCS 
+&#9744; Include Vertex Search as a retrieval source
+&#9744; Include Vertex Vector Search as a retrieval source
+&#9744; Filtered retrieval based on document metadata (year, customer, etc...)
+&#9744; Evaluation job of RAG model for accuracy
+&#9744; Add github actions
 
 # Requirements
 Google Cloud Platform (GCP) project
