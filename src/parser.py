@@ -4,6 +4,8 @@ from google.api_core.client_options import ClientOptions
 from google.cloud import documentai
 import config
 import tabulate as tb
+import pdb
+import json
 
 
 class DocAIParser():
@@ -23,7 +25,7 @@ class DocAIParser():
     # The full resource name of the processor version, e.g.:
     # `projects/{project_id}/locations/{location}/processors/{processor_id}/processorVersions/{processor_version_id}`
     # You must create a processor before running this sample.
-    self.name = self.client.processor_version_path(config.PROJECT, config.LOCATION, config.PROCESSOR_ID, config.PROCESSOR_VERSION)
+    self.name = self.client.processor_version_path(config.PROJECT, config.LOCATION, config.FORM_PROCESSOR_ID, config.FORM_PROCESSOR_VERSION)
 
   def read_text(self, processed_document, contains_table, table_indexes=None):
    
@@ -48,7 +50,7 @@ class DocAIParser():
     return unstructured_text 
 
   def read_tables(self, processed_document):
-    tables = [] 
+    chunks = [] 
     indexes = [] 
     
     text = processed_document.text 
@@ -58,13 +60,24 @@ class DocAIParser():
       
       print(f"\nFound {len(page.tables)} table(s):")
       for table in page.tables:
-        num_columns = len(table.header_rows[0].cells)
-        num_rows = len(table.body_rows)
+        rows = self.print_table_rows(table.body_rows, text)
+        header =  self.print_table_rows(table.header_rows, text)[0]
+
+        # chunking strategy by table or by row level
+        if config.TABLE_CHUNKING_OPTIONS=="by_table":         
+          pretty_table = header + rows 
+          pretty_table=tb.tabulate(pretty_table,headers="firstrow", tablefmt="pretty")
+          chunks.append(pretty_table) 
+        elif config.TABLE_CHUNKING_OPTIONS=="by_row":
+          for row in rows:
+            if len(row) == len(header) :   
+              mapping = {key: value for key, value in zip(header, row)}
+              json_object = json.dumps(mapping)
+              chunks.append(json_object) 
+        else:
+          Exception("please choose a valid option for TABLE_CHUNKING_OPTIONS")
         
-        pretty_table = self.print_table_rows(table.header_rows, text) + self.print_table_rows(table.body_rows, text)
-        pretty_table=tb.tabulate(pretty_table,headers="firstrow", tablefmt="pretty")
-        tables.append(pretty_table) 
-    
+        # store indexes of tables    
         cells = table.layout.text_anchor.text_segments
         max_index = 0
         min_index = 99999999 
@@ -75,7 +88,8 @@ class DocAIParser():
                 max_index = cell.end_index
         indexes.append({"start":min_index,"end":max_index})
         indexes = self.non_overlapping_indexes(indexes) 
-    return tables, indexes
+
+    return chunks, indexes
 
   def non_overlapping_indexes(self, indexes):
     """
