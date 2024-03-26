@@ -26,41 +26,40 @@ class Agent:
     logging.warning(",".join(obj))
     # load file
     documents = []
-    if config.SPLITTER == "text":
       
-      # read document using DocAI parser
-      parser = DocAIParser() 
-      proc_document = parser.process_document()
-      chunks = []
-      
-      # add tables if document has tables
-      table_indexes = []
-      if (config.HAS_TABLES == True):
-        tables, table_indexes = parser.read_tables(proc_document)
-        for table in tables:
-          doc =  Document(page_content=table, metadata={"source": "local"})
-          chunks.append(doc) 
-      
-      # add text that does not include tables
-      unstructured_text = parser.read_text(proc_document, config.HAS_TABLES, table_indexes)
-      text_splitter = RecursiveCharacterTextSplitter(chunk_size = config.CHUNK_SIZE,
-                                             chunk_overlap=config.CHUNK_OVERLAP)
-      chunks += text_splitter.create_documents([unstructured_text])    
+    # initialize DocAI parser
+    parser = DocAIParser() 
+    proc_document = parser.process_document()
+    chunks = []
     
+    # if document has tables
+    table_indexes = []
+    if (config.INCLUDE_TABLE_PARSING == True):
+      tables, table_indexes = parser.read_tables(proc_document)
+      for table in tables:
+        doc =  Document(page_content=table, metadata={"source": "local"})
+        chunks.append(doc) 
+    
+    # if document has unstructured text 
+    if (config.INCLUDE_UNSTRUCTURED_TEXT_PARSING == True):
+      unstructured_text = parser.read_text(proc_document, config.INCLUDE_TABLE_PARSING, table_indexes)
+      text_splitter = RecursiveCharacterTextSplitter(chunk_size = config.CHUNK_SIZE,
+                                           chunk_overlap=config.CHUNK_OVERLAP)
+      chunks += text_splitter.create_documents([unstructured_text])    
       
     else:
       raise ValueError("splitter input must be one of the following values [\"text\"]") 
 
     # create embeddings
     embed_model = None
-    if config.EMBEDDINGS == "google-gecko":
+    if config.EMBEDDINGS_MODEL == "google-gecko":
       embed_model= VertexAIEmbeddings()
     else:
       raise ValueError("splitter input must be one of the following values [\"google-gecko\"]") 
     
     # create retriever 
     db = None
-    if config.RETRIEVER == "faiss":
+    if config.RETRIEVER_DB == "faiss":
       self.db = FAISS.from_documents(chunks, embed_model)         
     else:
       raise ValueError("splitter input must be one of the following values [\"faiss\"]") 
@@ -80,8 +79,9 @@ class Agent:
     for i,doc in enumerate(nearby_documents):
       context += "[" + str(i) + "] \"..." + doc.page_content + "...\"\n\n\n"
     context += "END CONTEXT \n"
-    instructions = "Please answer the below question based on the context above: \n"
+    instructions = "Please answer the question based on the context above: \n"
     prompt = context + instructions + user_query
+    print(prompt)
 
     response = self.generate(prompt)
     return [response, context]
@@ -95,8 +95,7 @@ class Agent:
         prompt,
         generation_config={
           "max_output_tokens": 2048,
-          "temperature": 0.9,
-          "top_p": 1
+          "temperature": 0.2,
         },
         safety_settings={
           generative_models.HarmCategory.HARM_CATEGORY_HATE_SPEECH: generative_models.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
@@ -109,8 +108,10 @@ class Agent:
     except Exception as inst:
       print ("Exception: " + str(inst)) 
      
-    answers = [response.text for response in responses]
-    return answers[0] 
+    answers = ""
+    for response in responses:
+      answers+=response.text  
+    return answers
     
 
   
