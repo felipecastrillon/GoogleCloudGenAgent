@@ -9,10 +9,9 @@ import json
 
 
 class DocAIParser():
-
   # modified from https://cloud.google.com/document-ai/docs/samples/documentai-process-form-document 
   
-  def __init__(self):
+  def __init__(self, project, location, processor_id, processor_version):
     # document ai client
     # You must set the `api_endpoint` if you use a location other than "us".
     self.client = documentai.DocumentProcessorServiceClient(
@@ -21,11 +20,10 @@ class DocAIParser():
         )
     )
 
-
     # The full resource name of the processor version, e.g.:
     # `projects/{project_id}/locations/{location}/processors/{processor_id}/processorVersions/{processor_version_id}`
     # You must create a processor before running this sample.
-    self.name = self.client.processor_version_path(config.PROJECT, config.LOCATION, config.FORM_PROCESSOR_ID, config.FORM_PROCESSOR_VERSION)
+    self.name = self.client.processor_version_path(project, location,processor_id, processor_version)
 
   def read_text(self, processed_document, contains_table, table_indexes=None):
    
@@ -56,9 +54,7 @@ class DocAIParser():
     text = processed_document.text 
 
     for page in processed_document.pages:
-      print(f"\n\n**** Page {page.page_number} ****")
       
-      print(f"\nFound {len(page.tables)} table(s):")
       for table in page.tables:
         rows = self.print_table_rows(table.body_rows, text)
         header =  self.print_table_rows(table.header_rows, text)[0]
@@ -66,7 +62,7 @@ class DocAIParser():
         # chunking strategy by table or by row level
         if config.TABLE_CHUNKING_OPTIONS=="by_table":         
           pretty_table = header + rows 
-          pretty_table=tb.tabulate(pretty_table,headers="firstrow", tablefmt="pretty")
+          pretty_table=tb.tabulate(pretty_table, headers="firstrow", tablefmt="pretty")
           chunks.append(pretty_table) 
         elif config.TABLE_CHUNKING_OPTIONS=="by_row":
           for row in rows:
@@ -91,13 +87,22 @@ class DocAIParser():
 
     return chunks, indexes
 
+  def read_entities(self, processed_document):
+    chunks = []
+    entities = processed_document.entities
+    for entity in entities:
+      key = entity.type
+      value = entity.mention_text
+      chunks.append(key + " is " + value)
+    return chunks
+    
   def non_overlapping_indexes(self, indexes):
     """
     This function takes a list of indexes and returns a new list of indexes
     that does not include any overlaps.
 
     Args:
-      indexes: A list of dictionaries, where each dictionary has keys 'start' and 'end'
+k     indexes: A list of dictionaries, where each dictionary has keys 'start' and 'end'
         specifying the start and end indices of a range.
 
     Returns:

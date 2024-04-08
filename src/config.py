@@ -1,28 +1,40 @@
-# GCP variables
+# REPLACE EMPTY VALUES <..> FOR YOUR VALUES
 
-PROJECT = "felipe-sandbox-354619"
-LOCATION="us"
+# GCP VARIABLES ----------------------------- 
 
-# GCP DocAI variables
+# GCP Setup
 
-FORM_PROCESSOR_ID="fe1b38732f911e11" 
-FORM_PROCESSOR_VERSION="pretrained-form-parser-v2.1-2023-06-26"
-CDE_PROCESSOR_ID="c25a7e228be5a2fd"
-CDE_PROCESSOR_VERSION="pretrained-foundation-model-v1.0-2023-08-22"
+PROJECT = <PROJECT_ID> 
+LOCATION=<LOCATION> # default "us"
 
-# RAG Document Options 
+# DocAI processors 
 
-FILENAME="../docs/I-9_doc.pdf" # only supports PDF files 
+FORM_PROCESSOR_ID=<ID> 
+FORM_PROCESSOR_VERSION=<VERSION>
+CDE_PROCESSOR_ID=<ID>
+CDE_PROCESSOR_VERSION=<VERSION>
 
-INCLUDE_UNSTRUCTURED_TEXT_PARSING = True # if True, requires a valid FORM_PROCESSOR_ID
-CHUNK_SIZE=1000 # if INCLUDE_UNTRUCTURED_TEXT_PARSING is True 
-CHUNK_OVERLAP=100 # if INCLUDE_UNTRUCTURED_TEXT_PARSING is True 
 
-INCLUDE_TABLE_PARSING=True # if True, requires a valid FORM_PROCESSOR_ID
+# RAG OPTIONS -------------------------------- 
+
+FILENAME=<FILE_LOCATION_PATH> # only supports PDF files 
+
+# Parsing Unstructured Text Blocks
+
+INCLUDE_UNSTRUCTURED_TEXT_PARSING = True # True or False. If True, requires a valid FORM_PROCESSOR_ID (See "DocAI processors" section)
+CHUNK_SIZE=1000 # by number of tokens. Valid if INCLUDE_UNTRUCTURED_TEXT_PARSING = True 
+CHUNK_OVERLAP=100 # by number of tokens. Valid if INCLUDE_UNTRUCTURED_TEXT_PARSING = True 
+
+# Parsing Structured Tables
+
+INCLUDE_TABLE_PARSING=True # True or False. If True, requires a valid FORM_PROCESSOR_ID (See "DocAI processors" section)
 TABLE_CHUNKING_OPTIONS="by_row" # if INCLUDE_TABLE_PARSING is True. Options: "by_row" or "by_table". 
 
-INCLUDE_KEY_VALUE_EXTRACTION=True # if True requires a valid CDE_PROCESSOR_ID  
-KEYS_TO_SEARCH=["legal_name","effective_date","amount","issue_date"]
+# Parsing Entities
+
+INCLUDE_ENTITY_PARSING=True # True or False. If True, requires a valid CDE_PROCESSOR_ID (See "DocAI processors" section)
+
+# Vector Search Options
 
 EMBEDDINGS_MODEL="google-gecko" # options: "google-gecko"
 RETRIEVER_DB="faiss" # options: "faiss"

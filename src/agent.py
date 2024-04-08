@@ -18,39 +18,40 @@ import os
 class Agent:
   
   def __init__(self):
-    items = os.listdir(os.getcwd())
-    obj = []
-    for item in items:
-      obj.append(item)
-    logging.warning(os.getcwd())
-    logging.warning(",".join(obj))
-    # load file
-    documents = []
-      
-    # initialize DocAI parser
-    parser = DocAIParser() 
-    proc_document = parser.process_document()
+    
     chunks = []
+    form_parser = None
+    form_processed = None  
+
+    if (config.INCLUDE_TABLE_PARSING == True or config.INCLUDE_UNSTRUCTURED_TEXT_PARSING == True):
+      form_parser = DocAIParser(config.PROJECT, config.LOCATION, config.FORM_PROCESSOR_ID , config.FORM_PROCESSOR_VERSION) 
+      form_processed = form_parser.process_document()
     
     # if document has tables
     table_indexes = []
     if (config.INCLUDE_TABLE_PARSING == True):
-      tables, table_indexes = parser.read_tables(proc_document)
+      tables, table_indexes = form_parser.read_tables(form_processed)
       for table in tables:
         doc =  Document(page_content=table, metadata={"source": "local"})
         chunks.append(doc) 
     
     # if document has unstructured text 
     if (config.INCLUDE_UNSTRUCTURED_TEXT_PARSING == True):
-      unstructured_text = parser.read_text(proc_document, config.INCLUDE_TABLE_PARSING, table_indexes)
+      unstructured_text = form_parser.read_text(form_processed, config.INCLUDE_TABLE_PARSING, table_indexes)
       text_splitter = RecursiveCharacterTextSplitter(chunk_size = config.CHUNK_SIZE,
                                            chunk_overlap=config.CHUNK_OVERLAP)
       chunks += text_splitter.create_documents([unstructured_text])    
-      
-    else:
-      raise ValueError("splitter input must be one of the following values [\"text\"]") 
+     
+    # if document has entities you want to extract 
+    if (config.INCLUDE_ENTITY_PARSING == True):
+      cde_parser = DocAIParser(config.PROJECT, config.LOCATION, config.CDE_PROCESSOR_ID , config.CDE_PROCESSOR_VERSION) 
+      cde_processed = cde_parser.process_document()
+      entities = cde_parser.read_entities(cde_processed)
+      for entity in entities:
+        doc = Document(page_content=entity, metadata={"source" : "local"})
+        chunks.append(doc)
 
-    # create embeddings
+    # create embeddings from chunks
     embed_model = None
     if config.EMBEDDINGS_MODEL == "google-gecko":
       embed_model= VertexAIEmbeddings()
@@ -64,7 +65,7 @@ class Agent:
     else:
       raise ValueError("splitter input must be one of the following values [\"faiss\"]") 
     
-    # initialize model
+    # initialize genai model
     self.llm_model = ""
     if config.LLM_MODEL == "gemini":
        self.llm_model = GenerativeModel("gemini-pro")
