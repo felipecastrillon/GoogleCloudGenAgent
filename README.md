@@ -22,7 +22,7 @@ The project has quick customizable options in [src/config.py](https://github.com
 # Roadmap:
 - :white_check_mark:  Add retrieval snippets to UI 
 - :white_check_mark: Integrate DocAI Form Parser for tables. Remove table snippets from unstructured text parsing 
-- :white_check_mark: Integrate DocAI GenAI CDE 2.0 parser
+- :white_check_mark: Integrate DocAI GenAI CDE 2.0 parser for entity extraction
 - :white_large_square: Read directory instead of one file
 - :white_large_square: Read files from GCS 
 - :white_large_square: Include Vertex Search as a retrieval source
