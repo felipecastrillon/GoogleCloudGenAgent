@@ -2,19 +2,28 @@
 import langchain as lc
 import vertexai
 import pdb
+import config
+import logging
+import os
 import vertexai.preview.generative_models as generative_models
 from vertexai.preview.generative_models import GenerativeModel
 from vertexai.language_models import TextEmbeddingInput, TextEmbeddingModel
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings.vertexai import VertexAIEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import FAISS
+from langchain_community.vectorstores.faiss import FAISS
+from langchain_community.llms import VertexAI
+from langchain.agents import Tool
 from langchain.schema.document import Document
+from langchain.memory import ConversationBufferMemory
+from langchain.agents import AgentType
+from langchain.chains import RetrievalQA
+from langchain.agents import initialize_agent
+from langchain.tools.retriever import create_retriever_tool
 from tenacity import retry, stop_after_attempt
 from parser import DocAIParser
-import config
-import logging
-import os
+
+
 
 class Agent:
   
@@ -26,6 +35,10 @@ class Agent:
     self.embed_model = None
     self.llm_model = None
     self.db = None
+    self.retriever = None
+    self.retriever_tool = None
+    self.qa_chain = None
+    self.retriever = None
 
     self.read_document()
     self.get_embeddings()
@@ -75,19 +88,43 @@ class Agent:
     # create retriever 
     db = None
     if config.RETRIEVER_DB == "faiss":
-      self.db = FAISS.from_documents(self.chunks, self.embed_model)         
+      self.db = FAISS.from_documents(self.chunks, self.embed_model)  
+      self.retriever  = self.db.as_retriever()       
+      self.qa_chain = RetrievalQA.from_chain_type(llm=VertexAI(), chain_type="stuff", retriever=self.retriever)
+      self.retriever_tool = create_retriever_tool(
+                        name = "retrieval from financial documents for Alphabet and Google",
+                        retriever = self.retriever,
+                        description = config.DOC_DESCRIPTION
+                      )
     else:
       raise ValueError("splitter input must be one of the following values [\"faiss\"]") 
+    
+    
   
   def initialize_model(self):
-    # initialize genai model
-    self.llm_model = ""
-    if config.LLM_MODEL == "gemini":
-       self.llm_model = GenerativeModel("gemini-pro")
-    else:
-      raise ValueError("splitter input must be one of the following values [\"gemini\"]") 
+    self.llm_model = None
+    if config.APP_TYPE == "search":
+      # initialize genai model
+      
+      if config.LLM_MODEL == "gemini":
+        self.llm_model = GenerativeModel("gemini-pro")
+      else:
+        raise ValueError("splitter input must be one of the following values [\"gemini\"]") 
+    elif config.APP_TYPE == "chat":
+      memory = ConversationBufferMemory(memory_key="chat_history")
 
-  def run(self,user_query):
+      self.llm_model = initialize_agent(
+        tools = [self.retriever_tool],
+        agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
+        llm=VertexAI(), 
+        memory=memory, 
+        verbose=True,
+    )
+    else:
+      raise ValueError("APP_TYPE config input must be one of the following values [\"chat\",\"search\"]")
+
+
+  def search(self,user_query):
 
     # create prompt
     nearby_documents = self.db.similarity_search(user_query)
@@ -130,4 +167,8 @@ class Agent:
     return answers
     
 
+  def chat(self,user_query):
+    if user_query:
+      text = self.llm_model.run(user_query)
+      return text
   

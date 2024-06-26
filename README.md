@@ -3,6 +3,9 @@
 ![alt text](images/image1.png "APP UI")
 ![alt text](images/image2.png "Sample table from document")
 
+Chatbot option:
+![alt text](images/image3.png "Sample table from document")
+
 A customizable GenAI RAG application using Google Cloud components:
 - Gemini: LLM
 - textembedding-gecko: embedding model
@@ -18,11 +21,13 @@ The project has quick customizable options in [src/config.py](https://github.com
 - table parsing
 - entity parsing
 - advanced options for each parsing strategy
+- chatbot vs search function
 
 # Roadmap:
 - :white_check_mark:  Add retrieval snippets to UI 
 - :white_check_mark: Integrate DocAI Form Parser for tables. Remove table snippets from unstructured text parsing 
 - :white_check_mark: Integrate DocAI GenAI CDE 2.0 parser for entity extraction
+- :white_check_mark: Add option for chatbot instead of single search
 - :white_large_square: Read directory instead of one file
 - :white_large_square: Read files from GCS 
 - :white_large_square: Include Vertex Search as a retrieval source

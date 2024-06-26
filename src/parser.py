@@ -60,7 +60,8 @@ class DocAIParser():
         header =  self.print_table_rows(table.header_rows, text)[0]
 
         # chunking strategy by table or by row level
-        if config.TABLE_CHUNKING_OPTIONS=="by_table":         
+        if config.TABLE_CHUNKING_OPTIONS=="by_table":     
+          header = [header]
           pretty_table = header + rows 
           pretty_table=tb.tabulate(pretty_table, headers="firstrow", tablefmt="pretty")
           chunks.append(pretty_table) 
