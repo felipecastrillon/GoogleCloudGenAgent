@@ -9,3 +9,5 @@ faiss-cpu
 google-cloud-aiplatform
 pypdf
 tenacity
+google-cloud-documentai
+tabulate
